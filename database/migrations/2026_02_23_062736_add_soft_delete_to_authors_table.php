@@ -9,14 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-        public function up(): void
-        {
-            Schema::create('authors', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamps();
+    public function up(): void
+    {
+        Schema::table('authors', function (Blueprint $table) {
+        if (!Schema::hasColumn('authors', 'deleted_at')) {
             $table->softDeletes();
+        }
         });
     }
 
@@ -25,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('authors');
+        Schema::table('authors', function (Blueprint $table) {
+            $table->dropSoftDeletes();
+        });
     }
 };

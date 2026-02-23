@@ -19,6 +19,7 @@ return new class extends Migration
     $table->date('membership_date')->default(now());
     $table->boolean('is_active')->default(true);
     $table->timestamps();
+    $table->softDeletes();
 });
     }
 

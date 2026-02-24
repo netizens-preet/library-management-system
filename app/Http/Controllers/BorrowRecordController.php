@@ -6,18 +6,30 @@ use App\Models\Book;
 use App\Models\BorrowRecord;
 use App\Models\member;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 class BorrowRecordController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $records = BorrowRecord::with(['book', 'member'])->latest()->get();
-        $books = Book::where('available_copies', '>', 0)->get();
-        return view('borrows.index', compact('records', 'books' ));
+   // app/Http/Controllers/BorrowRecordController.php
+public function index()
+{
+    $query = BorrowRecord::with(['book', 'member']);
+
+    if (Auth::user()->isMember()) {
+        // Members only see their own records
+        // This assumes your 'members' table has a 'user_id' or matches the user email
+        $query->where('member_id', Auth::user()->id); 
     }
+
+    $records = $query->latest()->get();
+    
+    // Authors get the full list of books to manage, Members just get the catalog
+    $books = Book::where('available_copies', '>', 0)->get();
+
+    return view('borrows.index', compact('records', 'books'));
+}
 
     /**
      * Show the form for creating a new resource.

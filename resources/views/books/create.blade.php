@@ -1,87 +1,115 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container" style="max-width: 700px;">
-    <h2>Add New Book</h2>
-    <hr>
+    <div class="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Add New Book</h2>
 
-    <form action="{{ route('books.store') }}" method="POST">
-        @csrf
+            <form action="{{ route('books.store') }}" method="POST" class="space-y-6">
+                @csrf
 
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Title</label>
-            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title') }}" required>
-            @error('title') <div class="text-danger">{{ $message }}</div> @enderror
+                <div>
+                    <x-input-label for="title" :value="__('Title')" />
+                    <x-text-input id="title" class="block mt-1 w-full" type="text" name="title" :value="old('title')"
+                        required autofocus />
+                    <x-input-error :messages="$errors->get('title')" class="mt-2" />
+                </div>
+
+                <div>
+                    <x-input-label for="published_year" :value="__('Published Year')" />
+                    <x-text-input id="published_year" class="block mt-1 w-full" type="number" name="published_year"
+                        required />
+                    <x-input-error :messages="$errors->get('published_year')" class="mt-2" />
+                </div>
+
+                <div>
+                    <x-input-label for="author_id" :value="__('Author')" />
+                    <div class="flex gap-2">
+                        <select name="author_id" id="author_select"
+                            class="flex-1 rounded-md shadow-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
+                            required>
+                            <option value="">-- Select Author --</option>
+                            @foreach($authors as $author)
+                                <option value="{{ $author->id }}" {{ old('author_id') == $author->id ? 'selected' : '' }}>
+                                    {{ $author->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <x-secondary-button type="button" onclick="toggleAuthorModal(true)">
+                            + New
+                        </x-secondary-button>
+                    </div>
+                    <x-input-error :messages="$errors->get('author_id')" class="mt-2" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <x-input-label for="total_copies" :value="__('Total Copies')" />
+                        <x-text-input id="total_copies" class="block mt-1 w-full" type="number" name="total_copies"
+                            value="1" min="1" required />
+                    </div>
+                    <div>
+                        <x-input-label for="available_copies" :value="__('Available Copies')" />
+                        <x-text-input id="available_copies" class="block mt-1 w-full" type="number" name="available_copies"
+                            value="1" min="0" required />
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-4 mt-8">
+                    <a href="{{ route('books.index') }}"
+                        class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 border-b border-transparent hover:border-gray-900">
+                        Cancel
+                    </a>
+                    <x-primary-button>
+                        {{ __('Save Book') }}
+                    </x-primary-button>
+                </div>
+            </form>
         </div>
-
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Published Year</label>
-    <input type="number" name="published_year" class="form-control" required>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Author</label>
-            <div style="display: flex; gap: 10px;">
-                <select name="author_id" id="author_select" class="form-control" style="flex: 1;" required>
-                    <option value="">-- Select Author --</option>
-                    @foreach($authors as $author)
-                        <option value="{{ $author->id }}" {{ old('author_id') == $author->id ? 'selected' : '' }}>
-                            {{ $author->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <button type="button" class="btn btn-info" onclick="toggleAuthorModal(true)">
-                    + New Author
-                </button>
-            </div>
-            @error('author_id') <div class="text-danger">{{ $message }}</div> @enderror
-        </div>
-
-        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-            <div style="flex: 1;">
-                <label>Total Copies</label>
-                <input type="number" name="total_copies" class="form-control" value="1" min="1" required>
-            </div>
-            <div style="flex: 1;">
-                <label>Available Copies</label>
-                <input type="number" name="available_copies" class="form-control" value="1" min="0" required>
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-success">Save Book</button>
-        <a href="{{ route('books.index') }}" class="btn btn-secondary">Cancel</a>
-    </form>
-</div>
-
-<div id="authorModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6);">
-    <div style="background:white; margin:10% auto; padding:25px; width:450px; border-radius:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-        <h3>Quick Add Author</h3>
-        <hr>
-        <form action="{{ route('authors.store') }}" method="POST">
-            @csrf
-            <input type="hidden" name="from_book_create" value="1">
-
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label>Full Name</label>
-                <input type="text" name="name" class="form-control" required>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label>Email Address</label>
-                <input type="email" name="email" class="form-control" required>
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button type="button" class="btn" style="background:#ccc" onclick="toggleAuthorModal(false)">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Author</button>
-            </div>
-        </form>
     </div>
-</div>
 
-<script>
-    function toggleAuthorModal(show) {
-        document.getElementById('authorModal').style.display = show ? 'block' : 'none';
-    }
-</script>
+    <div id="authorModal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-500/75 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden w-full max-w-md transform transition-all">
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Add Author</h3>
+
+                <form action="{{ route('authors.store') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <input type="hidden" name="from_book_create" value="1">
+
+                    <div>
+                        <x-input-label for="modal_name" :value="__('Full Name')" />
+                        <x-text-input id="modal_name" class="block mt-1 w-full" type="text" name="name" required />
+                    </div>
+
+                    <div>
+                        <x-input-label for="modal_email" :value="__('Email Address')" />
+                        <x-text-input id="modal_email" class="block mt-1 w-full" type="email" name="email" required />
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-6">
+                        <x-secondary-button type="button" onclick="toggleAuthorModal(false)">
+                            Cancel
+                        </x-secondary-button>
+                        <x-primary-button>
+                            {{ __('Save Author') }}
+                        </x-primary-button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAuthorModal(show) {
+            const modal = document.getElementById('authorModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+    </script>
 @endsection
